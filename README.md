@@ -14,7 +14,7 @@ so AI coding tools write code that actually fits your project.
 
 [![VS Code Marketplace](https://img.shields.io/badge/VS_Code-Install_Extension-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=ai-project-brain.ai-project-brain)
 [![Website](https://img.shields.io/badge/Website-aicontextbrain.me-ffffff?style=for-the-badge&logo=google-chrome&logoColor=black)](https://aicontextbrain.me)
-[![Dashboard](https://img.shields.io/badge/Dashboard-Open_App-8b5cf6?style=for-the-badge&logo=safari&logoColor=white)](https://app.aicontextbrain.me)
+[![Dashboard](https://img.shields.io/badge/Dashboard-Open_App-8b5cf6?style=for-the-badge&logo=safari&logoColor=white)](https://aicontextbrain.me/dashboard)
 
 <br />
 
@@ -161,7 +161,7 @@ Run `AI Context Brain: Generate Context` to create optimized AI context files, t
 | | |
 |---|---|
 | 🌐 **Website** | [aicontextbrain.me](https://aicontextbrain.me) |
-| 📊 **Dashboard** | [app.aicontextbrain.me](https://app.aicontextbrain.me) |
+| 📊 **Dashboard** | [aicontextbrain.me/dashboard](https://aicontextbrain.me/dashboard) |
 | 🧩 **VS Code Extension** | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ai-project-brain.ai-project-brain) |
 | 🐛 **Issues & Feedback** | [GitHub Issues](https://github.com/AiContextBrain/AI-Context-Brain/issues) |
 | 📧 **Support** | [support@aicontextbrain.me](mailto:support@aicontextbrain.me) |
