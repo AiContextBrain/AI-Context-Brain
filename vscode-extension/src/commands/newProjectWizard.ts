@@ -84,18 +84,36 @@ export class NewProjectWizardCommand {
                 progress.report({ increment: 30, message: 'Creating folder structures...' });
                 const folderStructure: string[] = memory.folderStructure || [];
                 let createdFoldersCount = 0;
+                let existingFoldersCount = 0;
+                let skippedFoldersCount = 0;
                 for (const relativeFolder of folderStructure) {
-                    if (!relativeFolder.endsWith('/')) {
+                    const normalizedFolder = String(relativeFolder ?? '').trim().replace(/[\\/]+$/, '');
+                    if (!normalizedFolder || normalizedFolder === '.') {
+                        skippedFoldersCount++;
                         continue;
                     }
-                    const fullFolder = this.resolveSafeChildPath(projectPath, relativeFolder);
+                    const fullFolder = this.resolveSafeChildPath(projectPath, normalizedFolder);
                     if (!fullFolder) {
                         console.warn(`Skipped unsafe blueprint folder path: ${relativeFolder}`);
+                        skippedFoldersCount++;
                         continue;
                     }
-                    if (!fs.existsSync(fullFolder)) {
+                    try {
+                        if (fs.existsSync(fullFolder)) {
+                            if (fs.statSync(fullFolder).isDirectory()) {
+                                existingFoldersCount++;
+                            } else {
+                                console.warn(`Skipped blueprint folder because a file already exists at: ${normalizedFolder}`);
+                                skippedFoldersCount++;
+                            }
+                            continue;
+                        }
                         fs.mkdirSync(fullFolder, { recursive: true });
+                        fs.writeFileSync(path.join(fullFolder, '.gitkeep'), '', { flag: 'wx' });
                         createdFoldersCount++;
+                    } catch (folderError) {
+                        console.warn(`Failed to create blueprint folder ${normalizedFolder}:`, folderError);
+                        skippedFoldersCount++;
                     }
                 }
 
@@ -177,12 +195,16 @@ export class NewProjectWizardCommand {
                 progress.report({ increment: 100, message: 'Done!' });
                 
                 if (initResult && initResult.alreadyInitialized) {
-                    vscode.window.showInformationMessage('Workspace was already linked. Repository metadata and AI rules were refreshed.');
+                    vscode.window.showInformationMessage(
+                        `Workspace refreshed. Folder scaffold: ${createdFoldersCount} created, ${existingFoldersCount} already present, ${skippedFoldersCount} skipped.`
+                    );
                 } else {
                     const documentResult = projectDocumentCreated
                         ? ` Created ${path.basename(projectDocumentPath)} without replacing existing documentation.`
                         : '';
-                    vscode.window.showInformationMessage(`Workspace initialized successfully. Created ${createdFoldersCount} folders.${documentResult}`);
+                    vscode.window.showInformationMessage(
+                        `Workspace initialized. Folder scaffold: ${createdFoldersCount} created, ${existingFoldersCount} already present, ${skippedFoldersCount} skipped.${documentResult}`
+                    );
                 }
                 return true;
             } catch (err: any) {

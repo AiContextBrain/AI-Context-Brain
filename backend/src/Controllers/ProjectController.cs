@@ -1391,6 +1391,63 @@ public class ProjectController : ControllerBase
         }
     }
 
+    [HttpDelete("{projectId}")]
+    public async Task<IActionResult> DeleteProject(string projectId)
+    {
+        var user = await _context.ResolveUserFromBearerTokenAsync(
+            Request.Headers["Authorization"].FirstOrDefault());
+        if (user == null)
+        {
+            return Unauthorized(new { error = "invalid_token", message = "Invalid or missing token" });
+        }
+
+        var project = await _context.Projects
+            .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == user.Id);
+        if (project == null)
+        {
+            return NotFound(new { error = "project_not_found", message = "Project not found or access denied." });
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            _context.ProjectShares.RemoveRange(_context.ProjectShares.Where(s => s.ProjectId == project.Id));
+            _context.ActivityLogs.RemoveRange(_context.ActivityLogs.Where(a => a.ProjectId == project.Id));
+            _context.AIContexts.RemoveRange(_context.AIContexts.Where(c => c.ProjectId == project.Id));
+            _context.ProjectScans.RemoveRange(_context.ProjectScans.Where(s => s.ProjectId == project.Id));
+            _context.ArchitectureRules.RemoveRange(_context.ArchitectureRules.Where(r => r.ProjectId == project.Id));
+            _context.CodingConventions.RemoveRange(_context.CodingConventions.Where(c => c.ProjectId == project.Id));
+            _context.SystemDecisions.RemoveRange(_context.SystemDecisions.Where(d => d.ProjectId == project.Id));
+            _context.Projects.Remove(project);
+
+            _context.AuditLogs.Add(new AuditLog
+            {
+                AdminUserId = user.Id,
+                TargetUserId = user.Id,
+                Action = "project_deleted",
+                Details = $"User {user.Email} deleted project {project.Name} (ID: {project.Id})."
+            });
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Project connection and cloud memory were deleted. Local files were not changed."
+            });
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, new
+            {
+                error = "project_delete_failed",
+                message = "Project connection could not be deleted."
+            });
+        }
+    }
+
     [HttpPost("{projectId}/initialize-local")]
     public async Task<IActionResult> InitializeLocalProject(string projectId, [FromBody] InitializeLocalRequest request)
     {

@@ -459,6 +459,7 @@ export default function Dashboard() {
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [revokeLoading, setRevokeLoading] = useState<string | null>(null);
   const [regenLoading, setRegenLoading] = useState(false);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
   const [copiedType, setCopiedType] = useState<string | null>(null);
   const [sendingVerification, setSendingVerification] = useState(false);
 
@@ -554,6 +555,39 @@ export default function Dashboard() {
     } catch {}
     finally { setLoading(false); }
   }, [user, authFetch]);
+
+  const handleDeleteProject = async (project: Project) => {
+    if (project.isShared) return;
+    if (!window.confirm(
+      `Delete "${project.name}" from AI Context Brain? Cloud memory, history, rules, and team shares will be removed. Local files will stay untouched.`
+    )) return;
+
+    setDeletingProjectId(project.id);
+    try {
+      const response = await authFetch(`${API_BASE}/project/${encodeURIComponent(project.id)}`, {
+        method: "DELETE",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.message || "Project connection could not be deleted.");
+      }
+
+      setProjects(current => current.filter(item => item.id !== project.id));
+      if (selected?.id === project.id) {
+        setSelected(null);
+        setMemory(null);
+        setContextHistory([]);
+        setContextText(null);
+        setInstructionsText(null);
+      }
+      showAlert(data.message || "Project connection deleted. Local files were not changed.", "success");
+      await fetchAll();
+    } catch (error: any) {
+      showAlert(error?.message || "Project connection could not be deleted.", "error");
+    } finally {
+      setDeletingProjectId(null);
+    }
+  };
 
   // Initial fetch + polling every 20s + refetch on focus
   useEffect(() => {
@@ -1459,7 +1493,23 @@ export default function Dashboard() {
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0"
                             style={{ background: "rgba(79,124,255,0.1)", border: "1px solid rgba(79,124,255,0.15)" }}>📁</div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-bold text-xs text-white truncate">{p.name || p.path.split(/[\\/]/).pop()}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-xs text-white truncate flex-1">{p.name || p.path.split(/[\\/]/).pop()}</p>
+                              {!p.isShared && (
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleDeleteProject(p);
+                                  }}
+                                  disabled={deletingProjectId === p.id}
+                                  title="Delete cloud project connection"
+                                  className="text-[10px] font-bold text-red-400 hover:text-red-300 disabled:opacity-40"
+                                >
+                                  {deletingProjectId === p.id ? "Deleting..." : "Delete"}
+                                </button>
+                              )}
+                            </div>
                             <p className="text-[10px] text-[#4a5070] font-mono mt-0.5 truncate">{p.path}</p>
                             <div className="flex gap-1.5 mt-2.5 flex-wrap">
                               {p.framework && <span className="badge-blue text-[9px] font-bold py-0">{p.framework}</span>}

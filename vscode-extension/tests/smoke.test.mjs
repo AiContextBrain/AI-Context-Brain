@@ -70,6 +70,9 @@ test('wizard preserves existing files and scans before generating context', () =
   assert.match(wizard, /AI_CONTEXT_BRAIN_BLUEPRINT\.md/);
   assert.match(wizard, /if \(!fs\.existsSync\(projectDocumentPath\)\)/);
   assert.match(wizard, /resolveSafeChildPath/);
+  assert.doesNotMatch(wizard, /relativeFolder\.endsWith\('\/'\)/);
+  assert.match(wizard, /normalizedFolder/);
+  assert.match(wizard, /path\.join\(fullFolder, '\.gitkeep'\)/);
   assert.match(wizard, /mysql:\/\/user:password/);
   assert.match(wizard, /mongodb:\/\/localhost/);
   assert.match(contextExport, /OPTIMISTIC_CONTEXT_TOKEN_LIMIT = 2000/);

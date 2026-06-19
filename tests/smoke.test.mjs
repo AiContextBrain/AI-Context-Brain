@@ -624,6 +624,9 @@ test("project setup wizard and local workspace initialization are integrated", a
   assert.match(projectController, /HttpPost\("wizard-create"\)/);
   assert.match(projectController, /HttpGet\("\{projectId\}\/wizard-blueprint"\)/);
   assert.match(projectController, /HttpPost\("\{projectId\}\/initialize-local"\)/);
+  assert.match(projectController, /HttpDelete\("\{projectId\}"\)/);
+  assert.match(projectController, /p\.Id == projectId && p\.UserId == user\.Id/);
+  assert.match(projectController, /ProjectShares\.RemoveRange/);
   assert.match(projectController, /IsLocalInitialized = false/);
   assert.match(projectController, /project\.IsLocalInitialized = true/);
 
@@ -641,6 +644,8 @@ test("project setup wizard and local workspace initialization are integrated", a
   assert.match(extWizardCmd, /initializeWithProjectId/);
   assert.match(extWizardCmd, /initializeFromWeb/);
   assert.match(extWizardCmd, /apiClient\.initializeLocal/);
+  assert.doesNotMatch(extWizardCmd, /relativeFolder\.endsWith\('\/'\)/);
+  assert.match(extWizardCmd, /path\.join\(fullFolder, '\.gitkeep'\)/);
   assert.match(apiClient, /async initializeLocal/);
   assert.match(apiClient, /async getWizardBlueprint/);
 

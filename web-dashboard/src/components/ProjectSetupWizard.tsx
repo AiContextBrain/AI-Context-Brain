@@ -811,7 +811,7 @@ export default function ProjectSetupWizard({ isOpen, onClose, onSuccess }: Proje
                 <span className="text-4xl">🔮</span>
                 <h4 className="font-extrabold text-sm text-white mt-3.5">Deterministic Project Blueprint Verified</h4>
                 <p className="text-xs text-[#8b91b3] mt-1.5 leading-relaxed">
-                  The configuration has been built server-side. Review your blueprint details before generating the workspace.
+                  The folder scaffold and project rules have been built server-side. Review them before creating the workspace in VS Code.
                 </p>
               </div>
 
@@ -852,7 +852,7 @@ export default function ProjectSetupWizard({ isOpen, onClose, onSuccess }: Proje
               <div className="rounded-xl border border-[#4f7cff]/20 bg-[#4f7cff]/[0.02] p-4 flex gap-3 text-xs leading-relaxed">
                 <span className="text-lg">💡</span>
                 <div>
-                  <strong className="text-white">Purely Deterministic Flow:</strong> Initial project template and rule files are generated server-side **without consuming AI request limits**.
+                  <strong className="text-white">Purely Deterministic Flow:</strong> The folder scaffold and rule files are generated without consuming AI request limits.
                   You can opt-in to polish it with AI using the "AI Enhance / Polish" button later.
                 </div>
               </div>
@@ -865,7 +865,7 @@ export default function ProjectSetupWizard({ isOpen, onClose, onSuccess }: Proje
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-5">
                 <p className="text-sm font-black text-white">Connect this blueprint to VS Code</p>
                 <p className="mt-1 text-xs leading-5 text-[#8b91b3]">
-                  Open the folder you want to use, then connect it in one click. The extension will scan, generate context, and export the IDE files automatically.
+                  Open the folder you want to use, then connect it in one click. The extension will create the folder scaffold, scan it, generate context, and export the IDE files automatically.
                 </p>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <a
@@ -882,9 +882,9 @@ export default function ProjectSetupWizard({ isOpen, onClose, onSuccess }: Proje
               </div>
               <div className="text-center py-4">
                 <span className="text-5xl">🎉</span>
-                <h4 className="font-black text-lg text-white mt-4">Architecture & AI Memory Prepared!</h4>
+                <h4 className="font-black text-lg text-white mt-4">Folder Scaffold & AI Memory Prepared!</h4>
                 <p className="text-xs text-[#8b91b3] leading-relaxed mt-1">
-                  Your project blueprint is registered. The extension writes these files automatically after connecting the workspace.
+                  Your project blueprint is registered. The extension creates the folders and writes the context files after connecting the workspace.
                 </p>
               </div>
 

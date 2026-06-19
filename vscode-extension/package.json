@@ -2,7 +2,7 @@
   "name": "ai-project-brain",
   "displayName": "AI Context Brain",
   "description": "AI Context Optimization for codebases: make AI assistants understand your project with local memory, optimized exports, and architecture-aware rules.",
-  "version": "1.4.11",
+  "version": "1.4.12",
   "publisher": "ai-project-brain",
   "author": {
     "name": "AI Context Brain Team"
