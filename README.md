@@ -1,186 +1,120 @@
-<div align="center">
+﻿# AI Context Brain
 
-<br />
+> **Public Beta Notice**
+> AI Context Brain is currently in Public Beta.
+> Some features may evolve and minor bugs may exist.
+> We actively improve the product based on user feedback.
 
-# 🧠 AI Context Brain
-
-### Make every AI assistant understand your codebase.
-
-AI Context Brain is a codebase context optimization platform.<br/>
-It scans your project, understands its architecture, and exports optimized context<br/>
-so AI coding tools write code that actually fits your project.
-
-<br />
-
-[![VS Code Marketplace](https://img.shields.io/badge/VS_Code-Install_Extension-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=ai-project-brain.ai-project-brain)
-[![Website](https://img.shields.io/badge/Website-aicontextbrain.me-ffffff?style=for-the-badge&logo=google-chrome&logoColor=black)](https://aicontextbrain.me)
-[![Dashboard](https://img.shields.io/badge/Dashboard-Open_App-8b5cf6?style=for-the-badge&logo=safari&logoColor=white)](https://aicontextbrain.me/dashboard)
-
-<br />
-
-<img src="https://img.shields.io/badge/status-Public_Beta-a855f7?style=flat-square" />
-<img src="https://img.shields.io/badge/platform-VS_Code-007ACC?style=flat-square&logo=visual-studio-code&logoColor=white" />
-<img src="https://img.shields.io/badge/backend-.NET_9-512BD4?style=flat-square&logo=dotnet&logoColor=white" />
-<img src="https://img.shields.io/badge/license-Proprietary-gray?style=flat-square" />
-
-</div>
+AI Context Brain is a tool designed to capture codebase structure and context, facilitating better project understanding for AI coding assistants. Available as a VS Code extension, it runs local scans and generates optimized context and rule files for Cursor, Claude Code, GitHub Copilot, and Windsurf.
 
 ---
 
-## The Problem
+## 1. Cinematic Teaser
 
-AI coding assistants are powerful — but they don't know your project.
+The launch film is designed to create excitement and introduce the core promise:
 
-Every time you start a conversation, the AI has **zero memory** of your architecture, conventions, database schemas, or team rules. Developers end up:
-
-- 📋 Copy-pasting the same files over and over
-- 🔁 Re-explaining project structure in every prompt
-- 🐛 Getting suggestions that violate their coding conventions
-- ⏳ Wasting time correcting AI-generated code that doesn't fit
-
-**AI Context Brain fixes this.**
+[Watch the AI Context Brain cinematic product film](https://aicontextbrain.me/videos/ads-film.mp4)
 
 ---
 
-## How It Works
+## 2. Real Product Workflow
 
+The product workflow is intentionally separated from the cinematic film so users can see what actually happens in the product:
+
+1. Repository Scan
+2. Context Generation
+3. Explain with Project Memory
+4. Export to AI IDEs
+5. Dashboard review
+6. Usage statistics and plan enforcement
+
+[Watch the real product demo](https://aicontextbrain.me/videos/demo-aicontextbrain.mp4)
+
+[View the real workflow section on the website](https://aicontextbrain.me/#product-demo)
+
+---
+
+## 3. Screenshots
+
+The website and Marketplace should use real UI captures rather than marketing renders. Prioritized screenshot/GIF coverage:
+
+* Scan Repository
+* Generate Context
+* Explain with Project Memory
+* Export AI IDE Context
+* Dashboard and usage statistics
+
+---
+
+## 4. Features
+
+AI assistants often lose project context when prompts get long, when context windows fill up, or when models restart. AI Context Brain addresses this by maintaining a structured, compressed local codebase snapshot and translating it into format-specific instructions for AI coding assistants.
+
+*   **Intelligent Local Scanning**: Auto-detects frameworks (Next.js, React, ASP.NET Core, Python, Go, Node.js), dependency maps, and overall folder layouts.
+*   **`.brainignore` Support**: Exclude assets, binary files, or logs from context scans recursively.
+*   **Incremental Scanning**: Tracks local file hashes (`.brain-cache/hashes.json`) via SHA-256 to sync only added, modified, or deleted files, avoiding full project re-scans.
+*   **Architecture Guard**: Validates codebase constraints locally based on 6 rule paradigms (Regex, Folder Restriction, Content Forbidden, Import Restriction, Naming Paradigm, File Size Limit) with Error, Warning, and Info severity levels.
+*   **AI Suggest Fix (QuickFix)**: VS Code QuickFix integration that connects to the backend API to suggest code corrections for rule violations.
+*   **Background File Watcher**: A debounced file watcher that automatically schedules incremental scans in the background as you edit code.
+*   **Context History & Comparison**: The web dashboard tracks previous context versions, allowing you to view historical diffs and restore older versions.
+*   **Team Workspaces**: Share project memory, roles and AI guardrails with other team members in a shared dashboard workspace (requires Team subscription).
+
+---
+
+## 5. Installation
+
+1. **Local Scan**: The VS Code extension scans your local project directory.
+2. **Analysis & Filtering**: It filters out build artifacts, assets, and ignored items using your `.gitignore` and `.brainignore` rules.
+3. **Context Generation**: It gathers framework details, folder structure, database types, and libraries, then builds a structured project memory.
+4. **Targeted Export**: It exports optimized rule files (like `.cursorrules`, `CLAUDE.md`, `.windsurfrules`, or `.github/copilot-instructions.md`) directly into your workspace.
+
+---
+
+### VS Code Extension
+1. Search for `AI Context Brain` in the VS Code Marketplace and install it.
+2. Run `AI Context Brain: Register` or `AI Context Brain: Login` from the Command Palette to authenticate.
+3. Open a workspace and run `AI Context Brain: Scan Project` to build your first local context.
+
+### Local Development / Self-Hosting Setup
+
+For developers wanting to run the codebase locally:
+
+#### 1. Backend Server Setup (.NET 9 + PostgreSQL)
+```bash
+cd backend
+dotnet restore
+dotnet build
+dotnet ef database update
+dotnet run
 ```
-┌──────────────┐     ┌──────────────────┐     ┌───────────────────┐     ┌──────────────────┐
-│  Your Code   │ ──▶ │  Smart Scanner   │ ──▶ │ Context Optimizer │ ──▶ │  AI Gets Memory  │
-│              │     │                  │     │                   │     │                  │
-│ Frameworks   │     │ Detects stack,   │     │ Compresses into   │     │ Cursor, Copilot, │
-│ Conventions  │     │ patterns, deps,  │     │ optimized context │     │ Claude, Windsurf │
-│ Architecture │     │ DB, auth, APIs   │     │ per AI tool       │     │ all understand   │
-└──────────────┘     └──────────────────┘     └───────────────────┘     └──────────────────┘
+*Defaults to port 5001.*
+
+#### 2. VS Code Extension Setup (TypeScript)
+```bash
+cd vscode-extension
+npm install
+npm run compile
 ```
+*Press F5 inside VS Code to launch the Extension Development Host.*
 
-1. **Scan** — The VS Code extension scans your local project
-2. **Understand** — Detects frameworks, architecture, database, auth patterns, dependencies
-3. **Optimize** — Generates compressed, structured project context
-4. **Export** — Writes tool-specific rule files directly into your workspace
-
----
-
-## Supported AI Tools
-
-| AI Tool | Export Format | Auto-Sync |
-|:--------|:------------|:---------:|
-| **Cursor** | `.cursor/rules/` | ✅ |
-| **GitHub Copilot** | `.github/copilot-instructions.md` | ✅ |
-| **Claude Code** | `CLAUDE.md` | ✅ |
-| **Windsurf** | `.windsurf/rules/` | ✅ |
-| **OpenAI Codex** | `AGENTS.md` | ✅ |
-| **Aider** | `CONVENTIONS.md` | ✅ |
+#### 3. Web Dashboard Setup (React + Vite)
+```bash
+cd web-dashboard
+npm install
+npm run dev
+```
+*Runs on port 3000.*
 
 ---
 
-## Key Features
+## 6. Roadmap
 
-### 🔍 Intelligent Scanning
-Auto-detects your tech stack — frameworks (Next.js, React, ASP.NET, Python, Go, Node.js), databases (PostgreSQL, MongoDB, SQLite), auth systems (JWT, OAuth), and dependency graphs.
-
-### 🏗️ Architecture Awareness
-Extracts route maps, service graphs, entity models, DTO structures, and module relationships. Your AI assistant gets a deep understanding of how your codebase is organized.
-
-### 🛡️ Architecture Guard
-Define and enforce coding rules across your project with 6 rule types:
-- **Regex Rules** — Pattern matching validation
-- **Folder Restriction** — Enforce file placement conventions
-- **Content Forbidden** — Block hardcoded secrets, TODO markers
-- **Import Restriction** — Control dependency usage
-- **Naming Paradigm** — Enforce naming conventions
-- **File Size Limit** — Keep files maintainable
-
-### 🔄 Background Auto-Sync
-A file watcher detects changes and automatically triggers incremental scans. Your context stays fresh without manual effort.
-
-### 📜 Context History
-Track every version of your generated context. Compare diffs between versions and restore older snapshots when needed.
-
-### 👥 Team Workspaces
-Share project memory, conventions, and architecture rules with your team. Supports Owner, Admin, Member, and Viewer roles with invitation management.
-
-### 🤖 AI Explain
-Select any code block and get an explanation powered by your project memory — the AI understands the code *in context* of your architecture.
+See [ROADMAP.md](ROADMAP.md) for the public roadmap.
 
 ---
 
-## Getting Started
-
-### 1. Install the Extension
-Search for **"AI Context Brain"** in the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ai-project-brain.ai-project-brain) and install it.
-
-### 2. Create an Account
-Run `AI Context Brain: Register` from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`).
-
-### 3. Scan Your Project
-Open your project workspace and run `AI Context Brain: Scan Project`. The extension builds your project memory locally.
-
-### 4. Generate Context
-Run `AI Context Brain: Generate Context` to create optimized AI context files, then export to your preferred AI tool.
-
----
-
-## Plans
-
-| Feature | Free | Pro | Team |
-|:--------|:----:|:---:|:----:|
-| **Price** | $0 | $9/mo | $29/mo |
-| **Project Memories** | 3 | Unlimited | Unlimited |
-| **Context Refreshes / Month** | 50 | 500 | 1,000 |
-| **AI Requests / Month** | 20 | 100 | 500 |
-| **Context Depth** | Basic (~2k) | Deep (~32k) | Deep (~32k) |
-| **Context History & Diff** | — | ✅ | ✅ |
-| **Architecture Guard** | — | ✅ | ✅ |
-| **Priority AI** | — | ✅ | ✅ |
-| **API Access** | — | ✅ | ✅ |
-| **Team Workspace** | — | — | ✅ |
-| **Up to 10 Members** | — | — | ✅ |
-| **Shared Project Memory** | — | — | ✅ |
-
-[**View Plans →**](https://aicontextbrain.me)
-
----
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|-----------|
-| **Backend API** | .NET 9 (C#), PostgreSQL |
-| **VS Code Extension** | TypeScript |
-| **Web Dashboard** | React + Vite + TypeScript |
-| **AI Providers** | Google Gemini, OpenAI GPT-4 (Hybrid) |
-| **Email** | Resend API |
-| **Payments** | Paddle |
-| **Hosting** | Railway |
-
----
-
-## Links
-
-| | |
-|---|---|
-| 🌐 **Website** | [aicontextbrain.me](https://aicontextbrain.me) |
-| 📊 **Dashboard** | [aicontextbrain.me/dashboard](https://aicontextbrain.me/dashboard) |
-| 🧩 **VS Code Extension** | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ai-project-brain.ai-project-brain) |
-| 🐛 **Issues & Feedback** | [GitHub Issues](https://github.com/AiContextBrain/AI-Context-Brain/issues) |
-| 📧 **Support** | [support@aicontextbrain.me](mailto:support@aicontextbrain.me) |
-| 🐙 **GitHub Org** | [github.com/AiContextBrain](https://github.com/AiContextBrain) |
-
----
-
-<div align="center">
-
-### ⚠️ Public Beta
-
-AI Context Brain is currently in **Public Beta**.<br/>
-Some features may evolve and minor bugs may exist.<br/>
-We actively improve the product based on user feedback.
-
-<br />
-
-**Built with ❤️ by the AI Context Brain Team**
-
-*Stop repeating yourself to AI. Give it memory.*
-
-</div>
+## Support & Links
+*   **Website & Dashboard**: [aicontextbrain.me](https://aicontextbrain.me)
+*   **GitHub Repository**: [AiContextBrain/AI-Context-Brain](https://github.com/AiContextBrain/AI-Context-Brain)
+*   **Support**: [support@aicontextbrain.me](mailto:support@aicontextbrain.me)
+*   **Issue Tracker**: [GitHub Issues](https://github.com/AiContextBrain/AI-Context-Brain/issues)

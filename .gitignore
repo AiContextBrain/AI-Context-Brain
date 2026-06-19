@@ -1,0 +1,70 @@
+# ============================================
+# AI Context Brain - Global Git Ignore
+# ============================================
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# Backend
+/backend/appsettings.json
+/backend/appsettings.Development.json
+/backend/appsettings.Production.json
+/backend/bin/
+/backend/obj/
+/backend/*.user
+/backend/.vs/
+/backend/*.suo
+/backend/*.userprefs
+/backend/publish/
+/backend/out/
+/backend/*.db
+/backend/Data/Migrations/*.Designer.cs
+!backend/Data/Migrations/
+
+# Frontend - Web Dashboard
+/web-dashboard/node_modules/
+/web-dashboard/dist/
+/web-dashboard/dist-ssr/
+/web-dashboard/*.local
+/web-dashboard/.env
+/web-dashboard/.env.local
+/web-dashboard/.env.*.local
+
+# VSCode Extension
+/vscode-extension/node_modules/
+/vscode-extension/out/
+/vscode-extension/dist/
+/vscode-extension/*.vsix
+
+# Local AI Context Brain runtime cache
+.brain-cache/
+
+# Local scratch project build outputs
+/scratch-smtp/bin/
+/scratch-smtp/obj/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+log/
+
+# OS
+Thumbs.db
+.DS_Store
+*.tmp
+
+# Local .NET CLI caches created during sandboxed builds
+.dotnet/
+.nuget/
