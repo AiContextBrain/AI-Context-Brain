@@ -5,6 +5,7 @@ import { ApiClient } from '../services/apiClient';
 import { GenerateContextCommand } from './generateContext';
 import { ExportAiIdeContextCommand } from './exportAiIdeContext';
 import { ScanProjectCommand } from './scanProject';
+import { ProjectScaffoldService } from '../services/projectScaffoldService';
 
 export class NewProjectWizardCommand {
     constructor(private apiClient: ApiClient) {}
@@ -78,44 +79,12 @@ export class NewProjectWizardCommand {
                     throw new Error(`No project blueprint found for ID: "${projectId.trim()}"`);
                 }
 
+                const localProjectName = path.basename(path.resolve(projectPath));
                 progress.report({ increment: 20, message: 'Linking local workspace to cloud project...' });
-                const initResult = await this.apiClient.initializeLocal(projectId.trim(), projectPath);
+                const initResult = await this.apiClient.initializeLocal(projectId.trim(), projectPath, localProjectName);
 
-                progress.report({ increment: 30, message: 'Creating folder structures...' });
-                const folderStructure: string[] = memory.folderStructure || [];
-                let createdFoldersCount = 0;
-                let existingFoldersCount = 0;
-                let skippedFoldersCount = 0;
-                for (const relativeFolder of folderStructure) {
-                    const normalizedFolder = String(relativeFolder ?? '').trim().replace(/[\\/]+$/, '');
-                    if (!normalizedFolder || normalizedFolder === '.') {
-                        skippedFoldersCount++;
-                        continue;
-                    }
-                    const fullFolder = this.resolveSafeChildPath(projectPath, normalizedFolder);
-                    if (!fullFolder) {
-                        console.warn(`Skipped unsafe blueprint folder path: ${relativeFolder}`);
-                        skippedFoldersCount++;
-                        continue;
-                    }
-                    try {
-                        if (fs.existsSync(fullFolder)) {
-                            if (fs.statSync(fullFolder).isDirectory()) {
-                                existingFoldersCount++;
-                            } else {
-                                console.warn(`Skipped blueprint folder because a file already exists at: ${normalizedFolder}`);
-                                skippedFoldersCount++;
-                            }
-                            continue;
-                        }
-                        fs.mkdirSync(fullFolder, { recursive: true });
-                        fs.writeFileSync(path.join(fullFolder, '.gitkeep'), '', { flag: 'wx' });
-                        createdFoldersCount++;
-                    } catch (folderError) {
-                        console.warn(`Failed to create blueprint folder ${normalizedFolder}:`, folderError);
-                        skippedFoldersCount++;
-                    }
-                }
+                progress.report({ increment: 30, message: 'Creating runnable starter files...' });
+                const scaffold = new ProjectScaffoldService().create(projectPath, memory);
 
                 progress.report({ increment: 50, message: 'Generating configuration templates...' });
                 
@@ -138,7 +107,11 @@ export class NewProjectWizardCommand {
                 if (!fs.existsSync(envExamplePath)) {
                     fs.writeFileSync(
                         envExamplePath,
-                        this.generateEnvExample(memory.databaseType || 'None', memory.authSystem || 'None'),
+                        this.generateEnvExample(
+                            memory.framework || '',
+                            memory.databaseType || 'None',
+                            memory.authSystem || 'None'
+                        ),
                         'utf8'
                     );
                 }
@@ -147,7 +120,7 @@ export class NewProjectWizardCommand {
                 const readmePath = path.join(projectPath, 'README.md');
                 const blueprintPath = path.join(projectPath, 'AI_CONTEXT_BRAIN_BLUEPRINT.md');
                 const projectDocumentPath = fs.existsSync(readmePath) ? blueprintPath : readmePath;
-                const name = memory.name || path.basename(projectPath);
+                const name = localProjectName;
                 const framework = memory.framework || 'Unknown';
                 const arch = memory.architectureType || 'Unknown';
                 const db = memory.databaseType || 'None';
@@ -196,14 +169,14 @@ export class NewProjectWizardCommand {
                 
                 if (initResult && initResult.alreadyInitialized) {
                     vscode.window.showInformationMessage(
-                        `Workspace refreshed. Folder scaffold: ${createdFoldersCount} created, ${existingFoldersCount} already present, ${skippedFoldersCount} skipped.`
+                        `Workspace refreshed as ${localProjectName}. Starter files: ${scaffold.createdFiles} created, ${scaffold.existingFiles} preserved.`
                     );
                 } else {
                     const documentResult = projectDocumentCreated
                         ? ` Created ${path.basename(projectDocumentPath)} without replacing existing documentation.`
                         : '';
                     vscode.window.showInformationMessage(
-                        `Workspace initialized. Folder scaffold: ${createdFoldersCount} created, ${existingFoldersCount} already present, ${skippedFoldersCount} skipped.${documentResult}`
+                        `Workspace initialized as ${localProjectName}. Starter files: ${scaffold.createdFiles} created, ${scaffold.existingFiles} preserved.${documentResult}`
                     );
                 }
                 return true;
@@ -226,9 +199,17 @@ export class NewProjectWizardCommand {
         return gitignore;
     }
 
-    private generateEnvExample(databaseType: string, authType: string): string {
+    private generateEnvExample(framework: string, databaseType: string, authType: string): string {
+        const runtime = framework.toLowerCase();
         const database = databaseType.toLowerCase();
-        let content = `# Generated by AI Context Brain Wizard\nNODE_ENV=development\nPORT=3000\n`;
+        let content = '# Generated by AI Context Brain Wizard\n';
+        if (runtime.includes('asp.net') || runtime.includes('c#')) {
+            content += 'ASPNETCORE_ENVIRONMENT=Development\nASPNETCORE_URLS=http://localhost:5000\n';
+        } else if (runtime.includes('python') || runtime.includes('fastapi')) {
+            content += 'APP_ENV=development\nPORT=8000\n';
+        } else {
+            content += 'NODE_ENV=development\nPORT=3000\n';
+        }
 
         if (database.includes('postgres')) {
             content += 'DATABASE_URL="postgresql://user:password@localhost:5432/app"\n';
@@ -245,17 +226,12 @@ export class NewProjectWizardCommand {
         if (authType.toLowerCase().includes('jwt')) {
             content += 'JWT_SECRET="replace-with-a-long-random-secret"\n';
         }
+        if (authType.toLowerCase().includes('nextauth')) {
+            content += 'AUTH_SECRET="replace-with-at-least-32-random-characters"\n';
+            content += 'NEXTAUTH_URL="http://localhost:3000"\n';
+        }
 
         return content;
     }
 
-    private resolveSafeChildPath(projectPath: string, relativePath: string): string | null {
-        const root = path.resolve(projectPath);
-        const candidate = path.resolve(root, relativePath);
-        const relative = path.relative(root, candidate);
-        if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
-            return null;
-        }
-        return candidate;
-    }
 }

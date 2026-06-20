@@ -607,7 +607,9 @@ test("project setup wizard and local workspace initialization are integrated", a
   const projectModel = readFileSync("backend/src/Models/Project.cs", "utf8");
   const program = readFileSync("backend/Program.cs", "utf8");
   const dashboard = readFileSync("web-dashboard/src/pages/Dashboard.tsx", "utf8");
+  const alertContext = readFileSync("web-dashboard/src/context/AlertContext.tsx", "utf8");
   const extWizardCmd = readFileSync("vscode-extension/src/commands/newProjectWizard.ts", "utf8");
+  const scaffoldService = readFileSync("vscode-extension/src/services/projectScaffoldService.ts", "utf8");
   const apiClient = readFileSync("vscode-extension/src/services/apiClient.ts", "utf8");
 
   // 1. Request DTO checks
@@ -637,6 +639,11 @@ test("project setup wizard and local workspace initialization are integrated", a
   // 5. Dashboard query parameters auto-trigger checks
   assert.match(dashboard, /searchParams\.get\("wizard"\) === "true"/);
   assert.match(dashboard, /setShowWizard\(true\)/);
+  assert.match(alertContext, /showConfirm: \(options: ConfirmOptions\) => Promise<boolean>/);
+  assert.match(alertContext, /function ConfirmDialog/);
+  const deleteFlow = dashboard.slice(dashboard.indexOf("const handleDeleteProject"), dashboard.indexOf("// Initial fetch"));
+  assert.match(deleteFlow, /await showConfirm/);
+  assert.doesNotMatch(deleteFlow, /window\.confirm/);
 
   // 6. Extension command and local workspace creation checks
   assert.match(extWizardCmd, /class NewProjectWizardCommand/);
@@ -644,8 +651,11 @@ test("project setup wizard and local workspace initialization are integrated", a
   assert.match(extWizardCmd, /initializeWithProjectId/);
   assert.match(extWizardCmd, /initializeFromWeb/);
   assert.match(extWizardCmd, /apiClient\.initializeLocal/);
-  assert.doesNotMatch(extWizardCmd, /relativeFolder\.endsWith\('\/'\)/);
-  assert.match(extWizardCmd, /path\.join\(fullFolder, '\.gitkeep'\)/);
+  assert.match(extWizardCmd, /ProjectScaffoldService/);
+  assert.match(extWizardCmd, /localProjectName/);
+  assert.match(scaffoldService, /src\/app\/page\.tsx/);
+  assert.match(scaffoldService, /fs\.unlinkSync\(keepFile\)/);
+  assert.doesNotMatch(scaffoldService, /writeFileSync\([^\n]*\.gitkeep/);
   assert.match(apiClient, /async initializeLocal/);
   assert.match(apiClient, /async getWizardBlueprint/);
 
@@ -823,7 +833,7 @@ test("wizard handoff exposes project id and links cloud path before context gene
 
   assert.match(wizardUi, /setCreatedProjectId\(wizardData\.projectId/);
   assert.match(wizardUi, /Copy Project ID/);
-  const initializeIndex = wizardCommand.indexOf("initializeLocal(projectId.trim(), projectPath)");
+  const initializeIndex = wizardCommand.indexOf("initializeLocal(projectId.trim(), projectPath, localProjectName)");
   const generateIndex = wizardCommand.indexOf("generateAndWrite(projectPath");
   assert.ok(initializeIndex >= 0 && generateIndex >= 0 && initializeIndex < generateIndex);
   assert.match(projectController, /project_already_initialized_elsewhere/);
@@ -873,7 +883,7 @@ test("living context reflects current operational architecture", () => {
   assert.doesNotMatch(scanner, /purpose: 'Multi-provider AI integration/);
   assert.doesNotMatch(context, /Database: Unknown|Authentication: Unknown|No API routes detected|No DTOs detected|No AI provider integrations detected|No plan enforcement detected|No extension export targets detected|No test\/build configurations detected/);
   const extensionManifest = JSON.parse(readFileSync("vscode-extension/package.json", "utf8"));
-  assert.equal(extensionManifest.scripts.test, "node --test tests/smoke.test.mjs");
+  assert.equal(extensionManifest.scripts.test, "node --test tests/*.test.mjs");
 });
 
 test("critical cross-surface workflows fail safely and preserve user data", () => {
@@ -888,14 +898,15 @@ test("critical cross-surface workflows fail safely and preserve user data", () =
 
   assert.doesNotMatch(wizardUi, /\/project\/generate-context/);
   assert.match(wizardUi, /must not consume AI usage/);
-  const initializeIndex = wizardExtension.indexOf("initializeLocal(projectId.trim(), projectPath)");
+  const initializeIndex = wizardExtension.indexOf("initializeLocal(projectId.trim(), projectPath, localProjectName)");
   const scanIndex = wizardExtension.indexOf("scanCmd.execute({ silent: true, force: true, requireCloud: true })");
   const generateIndex = wizardExtension.indexOf("generateAndWrite(projectPath");
   assert.ok(initializeIndex >= 0 && scanIndex > initializeIndex && generateIndex > scanIndex);
   assert.match(wizardExtension, /fs\.existsSync\(readmePath\) \? blueprintPath : readmePath/);
   assert.match(wizardExtension, /generateEnvExample/);
-  assert.match(wizardExtension, /resolveSafeChildPath/);
-  assert.match(wizardExtension, /relative\.startsWith\('\.\.'\)/);
+  const scaffoldService = readFileSync("vscode-extension/src/services/projectScaffoldService.ts", "utf8");
+  assert.match(scaffoldService, /safeChild/);
+  assert.match(scaffoldService, /relative\.startsWith\('\.\.'\)/);
   assert.match(contextExport, /OPTIMISTIC_CONTEXT_TOKEN_LIMIT = 2000/);
 
   assert.match(payment, /ResolveUserFromBearerTokenAsync/);

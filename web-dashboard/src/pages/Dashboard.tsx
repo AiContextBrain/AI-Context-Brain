@@ -448,7 +448,7 @@ export default function Dashboard() {
   const [selected, setSelected] = useState<Project | null>(null);
   const [memory, setMemory] = useState<ProjectMemory | null>(null);
   const [memLoading, setMemLoading] = useState(false);
-  const { showAlert } = useAlert();
+  const { showAlert, showConfirm } = useAlert();
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [wasProGenerated, setWasProGenerated] = useState(false);
   const [memTab, setMemTab] = useState<"overview" | "context" | "rules" | "conventions" | "decisions" | "history">("overview");
@@ -558,9 +558,14 @@ export default function Dashboard() {
 
   const handleDeleteProject = async (project: Project) => {
     if (project.isShared) return;
-    if (!window.confirm(
-      `Delete "${project.name}" from AI Context Brain? Cloud memory, history, rules, and team shares will be removed. Local files will stay untouched.`
-    )) return;
+    const confirmed = await showConfirm({
+      title: "Delete project connection?",
+      message: `"${project.name}" cloud memory, history, rules, and team shares will be removed. Local files will stay untouched.`,
+      confirmLabel: "Delete connection",
+      cancelLabel: "Keep project",
+      danger: true,
+    });
+    if (!confirmed) return;
 
     setDeletingProjectId(project.id);
     try {

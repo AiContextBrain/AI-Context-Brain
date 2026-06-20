@@ -9,8 +9,21 @@ export interface AlertMessage {
   description?: string;
 }
 
+export interface ConfirmOptions {
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  danger?: boolean;
+}
+
+interface ConfirmRequest extends ConfirmOptions {
+  resolve: (confirmed: boolean) => void;
+}
+
 interface AlertContextType {
   showAlert: (message: string, type?: AlertType, description?: string) => void;
+  showConfirm: (options: ConfirmOptions) => Promise<boolean>;
   removeAlert: (id: string) => void;
   alerts: AlertMessage[];
 }
@@ -19,6 +32,7 @@ const AlertContext = createContext<AlertContextType | undefined>(undefined);
 
 export function AlertProvider({ children }: { children: React.ReactNode }) {
   const [alerts, setAlerts] = useState<AlertMessage[]>([]);
+  const [confirmation, setConfirmation] = useState<ConfirmRequest | null>(null);
 
   const removeAlert = useCallback((id: string) => {
     setAlerts(prev => prev.filter(alert => alert.id !== id));
@@ -34,11 +48,99 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
     }, 5000);
   }, [removeAlert]);
 
+  const showConfirm = useCallback((options: ConfirmOptions) => {
+    return new Promise<boolean>((resolve) => {
+      setConfirmation({ ...options, resolve });
+    });
+  }, []);
+
+  const resolveConfirmation = useCallback((confirmed: boolean) => {
+    const current = confirmation;
+    setConfirmation(null);
+    current?.resolve(confirmed);
+  }, [confirmation]);
+
   return (
-    <AlertContext.Provider value={{ showAlert, removeAlert, alerts }}>
+    <AlertContext.Provider value={{ showAlert, showConfirm, removeAlert, alerts }}>
       {children}
       <AlertContainer alerts={alerts} removeAlert={removeAlert} />
+      {confirmation && (
+        <ConfirmDialog
+          options={confirmation}
+          onCancel={() => resolveConfirmation(false)}
+          onConfirm={() => resolveConfirmation(true)}
+        />
+      )}
     </AlertContext.Provider>
+  );
+}
+
+function ConfirmDialog({
+  options,
+  onCancel,
+  onConfirm
+}: {
+  options: ConfirmOptions;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onCancel();
+      }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10000,
+        display: 'grid',
+        placeItems: 'center',
+        padding: '20px',
+        background: 'rgba(3, 5, 10, 0.76)',
+        backdropFilter: 'blur(8px)'
+      }}
+    >
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="global-confirm-title"
+        aria-describedby="global-confirm-message"
+        style={{
+          width: 'min(440px, 100%)',
+          padding: '24px',
+          borderRadius: '8px',
+          border: '1px solid rgba(255,255,255,0.10)',
+          background: '#0d0f1a',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.45)'
+        }}
+      >
+        <h2 id="global-confirm-title" style={{ margin: 0, color: '#fff', fontSize: '17px', fontWeight: 800 }}>
+          {options.title}
+        </h2>
+        <p id="global-confirm-message" style={{ margin: '10px 0 0', color: '#9aa2ba', fontSize: '13px', lineHeight: 1.65 }}>
+          {options.message}
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
+          <button type="button" onClick={onCancel} className="btn-secondary px-4 py-2 text-xs font-bold">
+            {options.cancelLabel || 'Cancel'}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="px-4 py-2 text-xs font-bold text-white"
+            style={{
+              borderRadius: '6px',
+              border: options.danger ? '1px solid rgba(239,68,68,0.45)' : '1px solid rgba(79,124,255,0.45)',
+              background: options.danger ? '#b91c1c' : '#315eea',
+              cursor: 'pointer'
+            }}
+          >
+            {options.confirmLabel || 'Confirm'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -177,4 +177,5 @@ public class InitializeProjectRequest
 public class InitializeLocalRequest
 {
     public string LocalPath { get; set; } = string.Empty;
+    public string? WorkspaceName { get; set; }
 }

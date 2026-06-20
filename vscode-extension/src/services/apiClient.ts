@@ -384,7 +384,7 @@ export class ApiClient {
         return response.json();
     }
 
-    async initializeLocal(projectId: string, localPath: string): Promise<any> {
+    async initializeLocal(projectId: string, localPath: string, workspaceName?: string): Promise<any> {
         this.ensureAuthenticated();
         const response = await fetch(`${this.baseUrl}/project/${encodeURIComponent(projectId)}/initialize-local`, {
             method: 'POST',
@@ -393,7 +393,7 @@ export class ApiClient {
                 'Authorization': `Bearer ${this.token}`,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ localPath })
+            body: JSON.stringify({ localPath, workspaceName })
         });
         if (!response.ok) {
             if (response.status === 401) {

@@ -45,6 +45,20 @@ public class ProjectMetrics
     public List<PlanEnforcementDetails>? PlanEnforcementMap { get; set; }
     public List<ExtensionExportDetails>? ExtensionExportMap { get; set; }
     public List<TestBuildDetails>? TestBuildMap { get; set; }
+    public WizardScaffoldOptions? WizardScaffold { get; set; }
+}
+
+public class WizardScaffoldOptions
+{
+    public List<string> Platforms { get; set; } = new();
+    public List<string> ProductTypes { get; set; } = new();
+    public List<string> Languages { get; set; } = new();
+    public List<string> Databases { get; set; } = new();
+    public List<string> Auths { get; set; } = new();
+    public List<string> Deployments { get; set; } = new();
+    public List<string> Billings { get; set; } = new();
+    public List<string> Automations { get; set; } = new();
+    public List<string> Locales { get; set; } = new();
 }
 
 public class FileMetric

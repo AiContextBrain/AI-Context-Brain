@@ -62,17 +62,23 @@ test('wizard preserves existing files and scans before generating context', () =
   const extension = read('src/extension.ts');
   const manifest = JSON.parse(read('package.json'));
   const contextExport = read('src/services/contextExportService.ts');
-  const initializeIndex = wizard.indexOf('initializeLocal(projectId.trim(), projectPath)');
+  const scaffold = read('src/services/projectScaffoldService.ts');
+  const initializeIndex = wizard.indexOf('initializeLocal(projectId.trim(), projectPath, localProjectName)');
   const scanIndex = wizard.indexOf('scanCmd.execute({ silent: true, force: true, requireCloud: true })');
   const generateIndex = wizard.indexOf('generateAndWrite(projectPath');
 
   assert.ok(initializeIndex >= 0 && scanIndex > initializeIndex && generateIndex > scanIndex);
   assert.match(wizard, /AI_CONTEXT_BRAIN_BLUEPRINT\.md/);
   assert.match(wizard, /if \(!fs\.existsSync\(projectDocumentPath\)\)/);
-  assert.match(wizard, /resolveSafeChildPath/);
-  assert.doesNotMatch(wizard, /relativeFolder\.endsWith\('\/'\)/);
-  assert.match(wizard, /normalizedFolder/);
-  assert.match(wizard, /path\.join\(fullFolder, '\.gitkeep'\)/);
+  assert.match(wizard, /ProjectScaffoldService/);
+  assert.match(wizard, /path\.basename\(path\.resolve\(projectPath\)\)/);
+  assert.doesNotMatch(wizard, /writeFileSync\(path\.join\(fullFolder, '\.gitkeep'\)/);
+  assert.match(scaffold, /src\/app\/page\.tsx/);
+  assert.match(scaffold, /src\/app\/api\/health\/route\.ts/);
+  assert.match(scaffold, /prisma\/schema\.prisma/);
+  assert.match(scaffold, /fs\.unlinkSync\(keepFile\)/);
+  assert.match(scaffold, /next: '\^16\.2\.9'/);
+  assert.match(scaffold, /postcss: '\^8\.5\.10'/);
   assert.match(wizard, /mysql:\/\/user:password/);
   assert.match(wizard, /mongodb:\/\/localhost/);
   assert.match(contextExport, /OPTIMISTIC_CONTEXT_TOKEN_LIMIT = 2000/);

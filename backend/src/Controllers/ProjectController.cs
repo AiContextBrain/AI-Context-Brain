@@ -1238,6 +1238,18 @@ public class ProjectController : ControllerBase
                     Backend = new DetectedTech { Name = blueprint.Framework, Confidence = 1.0 },
                     Database = new DetectedTech { Name = blueprint.DatabaseType, Confidence = 1.0 },
                     Auth = new DetectedTech { Name = blueprint.AuthSystem, Confidence = 1.0 }
+                },
+                WizardScaffold = new WizardScaffoldOptions
+                {
+                    Platforms = request.Platforms,
+                    ProductTypes = request.ProductTypes,
+                    Languages = request.Languages,
+                    Databases = request.Databases,
+                    Auths = request.Auths,
+                    Deployments = request.Deployments,
+                    Billings = request.Billings,
+                    Automations = request.Automations,
+                    Locales = request.Locales ?? new List<string>()
                 }
             };
 
@@ -1347,7 +1359,12 @@ public class ProjectController : ControllerBase
 
             var folderStructure = new List<string>();
             var dependencies = new List<string>();
-            var scan = project.Scans.OrderByDescending(s => s.ScanDate).FirstOrDefault();
+            var scaffoldOptions = new WizardScaffoldOptions();
+            ProjectMetrics? wizardMetrics = null;
+            var scan = project.Scans
+                .OrderByDescending(s => s.ScanDate)
+                .FirstOrDefault(s => s.FilesCount == 0 && s.FolderStructureJson != "[]")
+                ?? project.Scans.OrderByDescending(s => s.ScanDate).FirstOrDefault();
             if (scan != null)
             {
                 if (!string.IsNullOrEmpty(scan.FolderStructureJson))
@@ -1362,8 +1379,9 @@ public class ProjectController : ControllerBase
                 {
                     try
                     {
-                        var metrics = System.Text.Json.JsonSerializer.Deserialize<ProjectMetrics>(scan.ScanData);
-                        dependencies = metrics?.Dependencies ?? new();
+                        wizardMetrics = System.Text.Json.JsonSerializer.Deserialize<ProjectMetrics>(scan.ScanData);
+                        dependencies = wizardMetrics?.Dependencies ?? new();
+                        scaffoldOptions = wizardMetrics?.WizardScaffold ?? new WizardScaffoldOptions();
                     }
                     catch {}
                 }
@@ -1373,12 +1391,13 @@ public class ProjectController : ControllerBase
             {
                 id = project.Id,
                 name = project.Name,
-                framework = project.Framework,
-                architectureType = project.ArchitectureType,
-                databaseType = project.DatabaseType,
-                authSystem = project.AuthSystem,
+                framework = scan?.Framework ?? project.Framework,
+                architectureType = scan?.ArchitectureType ?? project.ArchitectureType,
+                databaseType = wizardMetrics?.TechStack?.Database?.Name ?? project.DatabaseType,
+                authSystem = wizardMetrics?.TechStack?.Auth?.Name ?? project.AuthSystem,
                 folderStructure = folderStructure,
                 dependencies = dependencies,
+                scaffoldOptions,
                 systemDecisions = project.SystemDecisions.Select(d => new { d.Title, d.Decision, d.Category, d.Reasoning }).ToList(),
                 architectureRules = project.ArchitectureRules.Select(r => new { r.Name, r.Pattern, r.Description, r.RuleType, r.Severity, r.Language, r.AutoFixSuggestion }).ToList(),
                 codingConventions = project.CodingConventions.Select(c => new { c.Name, c.Rule, c.Example, c.Language }).ToList()
@@ -1467,6 +1486,12 @@ public class ProjectController : ControllerBase
                 return NotFound(new { error = "project_not_found", message = "Project not found or access denied." });
             }
 
+            var workspaceName = (request.WorkspaceName ?? string.Empty).Trim();
+            if (workspaceName.Length > 200)
+            {
+                return BadRequest(new { error = "validation_failed", message = "Workspace name must be 200 characters or fewer." });
+            }
+
             // Idempotency check:
             if (project.IsLocalInitialized)
             {
@@ -1478,7 +1503,13 @@ public class ProjectController : ControllerBase
                         message = "This wizard project is already linked to a different local workspace."
                     });
                 }
-                return Ok(new { success = true, alreadyInitialized = true, message = "Project is already initialized." });
+                if (!string.IsNullOrWhiteSpace(workspaceName) && project.Name != workspaceName)
+                {
+                    project.Name = workspaceName;
+                    project.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
+                return Ok(new { success = true, alreadyInitialized = true, projectName = project.Name, message = "Project is already initialized." });
             }
 
             if (string.IsNullOrWhiteSpace(request.LocalPath))
@@ -1495,6 +1526,10 @@ public class ProjectController : ControllerBase
             }
 
             project.Path = request.LocalPath;
+            if (!string.IsNullOrWhiteSpace(workspaceName))
+            {
+                project.Name = workspaceName;
+            }
             project.IsLocalInitialized = true;
             project.UpdatedAt = DateTime.UtcNow;
 
@@ -1518,7 +1553,7 @@ public class ProjectController : ControllerBase
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { success = true, alreadyInitialized = false, message = "Project successfully initialized locally." });
+            return Ok(new { success = true, alreadyInitialized = false, projectName = project.Name, message = "Project successfully initialized locally." });
         }
         catch (Exception ex)
         {
