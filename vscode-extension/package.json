@@ -1,0 +1,199 @@
+{
+  "name": "ai-project-brain",
+  "displayName": "AI Context Brain",
+  "description": "AI Context Optimization for codebases: make AI assistants understand your project with local memory, optimized exports, and architecture-aware rules.",
+  "version": "1.4.19",
+  "publisher": "ai-project-brain",
+  "author": {
+    "name": "AI Context Brain Team"
+  },
+  "license": "MIT",
+  "galleryBanner": {
+    "color": "#0f1419",
+    "theme": "dark"
+  },
+  "keywords": [
+    "ai",
+    "context",
+    "project memory",
+    "architecture",
+    "cursor",
+    "claude",
+    "copilot",
+    "windsurf"
+  ],
+  "icon": "images/logo.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AiContextBrain/AI-Context-Brain"
+  },
+  "homepage": "https://aicontextbrain.me",
+  "bugs": {
+    "url": "https://github.com/AiContextBrain/AI-Context-Brain/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onUri"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aiContextBrain.login",
+        "title": "Login",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.register",
+        "title": "Register",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.logout",
+        "title": "Logout",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.checkLogin",
+        "title": "Check Login Status",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.openDashboard",
+        "title": "Open Dashboard",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.scanProject",
+        "title": "Scan Project",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.generateContext",
+        "title": "Generate AI Context",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.exportAiIdeContext",
+        "title": "Export AI IDE Context",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.quickCopyContext",
+        "title": "Quick Copy Context",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.showProjectMemory",
+        "title": "Show Project Memory Panel",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.newProjectWizard",
+        "title": "New Project Wizard",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.initializeLocalWorkspace",
+        "title": "Initialize Local Workspace from Project ID",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.showRoadmap",
+        "title": "Show Roadmap",
+        "category": "AI Context Brain"
+      },
+      {
+        "command": "aiContextBrain.aiExplain",
+        "title": "Explain Code with Project Memory",
+        "category": "AI Context Brain"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "aiContextBrain.aiExplain",
+          "group": "aiContextBrain@1",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "aiContextBrainProjectView",
+          "name": "Context Brain",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AI Context Brain",
+      "properties": {
+        "aiContextBrain.apiUrl": {
+          "type": "string",
+          "default": "https://api.aicontextbrain.me",
+          "description": "API Base URL for AI Context Brain backend"
+        },
+        "aiContextBrain.webUrl": {
+          "type": "string",
+          "default": "https://aicontextbrain.me",
+          "description": "Web Dashboard URL for AI Context Brain"
+        },
+        "aiContextBrain.autoScan": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run one silent metadata scan when a workspace opens. Does not generate AI context."
+        },
+        "aiContextBrain.autoExportOnScan": {
+          "type": "boolean",
+          "default": false,
+          "description": "After a manual Scan Project command, generate and export optimized context. Disabled for background auto-sync to protect AI API usage."
+        },
+        "aiContextBrain.autoSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Track code file changes in a local queue. Does not upload scans or generate AI context until you run Scan Project."
+        },
+        "aiContextBrain.autoSyncDebounceSeconds": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "maximum": 300,
+          "description": "Seconds to wait after the last code file change before triggering background metadata sync"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node --test tests/*.test.mjs",
+    "dev": "npm run watch",
+    "build": "npm run compile",
+    "prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "18.x",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.54.0",
+    "sharp": "^0.34.5"
+  },
+  "dependencies": {
+    "typescript": "^5.3.0"
+  }
+}
